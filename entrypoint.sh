@@ -68,14 +68,17 @@ get_config()
 	esac
 }
 
-current_cfg="`get_config`"
+current_cfg="* {
+    internal /
+}"
 echo "$current_cfg" > Caddyfile
 
 caddy -agree -email $email &
 pid=$!
 
 while :; do
-	sleep 10
+	ps -o pid | grep -q "^ *$pid$" || break
+
 	next_cfg="`get_config`"
 	if [ ! "$current_cfg" = "$next_cfg" ]; then
 		current_cfg="$next_cfg"
@@ -87,7 +90,7 @@ while :; do
 		kill -USR1 $pid || break
 	fi
 
-	ps -o pid | grep -q "^ *$pid$" || break
+	sleep 10
 done
 
 wait $pid
