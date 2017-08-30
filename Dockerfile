@@ -23,11 +23,12 @@ RUN \
     apk del $build && \
     rm -rf /var/cache/apk/*
 
-ADD entrypoint.sh /
-ENTRYPOINT ["/entrypoint.sh"]
-WORKDIR /tmp
-USER nobody
-
-VOLUME /state
-ENV CADDYPATH="/state"
 EXPOSE 80 443
+WORKDIR /tmp
+ENV CADDYPATH="/state"
+VOLUME /state
+ENTRYPOINT ["/entrypoint.sh"]
+
+ADD entrypoint.sh /
+
+USER nobody
