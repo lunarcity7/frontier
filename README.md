@@ -5,6 +5,9 @@ achievable through minimal configuration by adding a simple container that knows
 how to get the required information from your cloud, and reconfigure on-the-fly
 when things change.
 
+Using this container impliest that you agree to the [Let's Encrypt terms of
+service](https://community.letsencrypt.org/tos).
+
 ### Assumptions
 - All domains (bare, www., etc.) are specified in metadata, e.g. in labels
 - All domains have correct nameserver mappings
