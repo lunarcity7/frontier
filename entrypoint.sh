@@ -74,7 +74,7 @@ current_cfg="* {
 }"
 echo "$current_cfg" > Caddyfile
 
-caddy -agree -email $email &
+caddy -agree -log stdout -email $email &
 pid=$!
 
 while :; do
