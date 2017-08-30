@@ -39,7 +39,6 @@ $domains {
 	proxy / $ip_and_port {
 		transparent
 		websocket
-		gzip
 	}
 }
 EOF
