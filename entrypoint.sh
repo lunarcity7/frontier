@@ -74,7 +74,7 @@ current_cfg="* {
 }"
 echo "$current_cfg" > Caddyfile
 
-caddy -agree -log stdout -email $email &
+caddy -agree -log stdout -http-port 80 -https-port 443 -email $email &
 pid=$!
 
 while :; do
