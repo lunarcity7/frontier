@@ -30,3 +30,4 @@ USER nobody
 
 VOLUME /state
 ENV CADDYPATH="/state"
+EXPOSE 80 443
