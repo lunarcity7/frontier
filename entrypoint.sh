@@ -36,6 +36,8 @@ config()
 
 	cat <<EOF
 $domains {
+	gzip
+
 	proxy / $ip_and_port {
 		transparent
 		websocket
