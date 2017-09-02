@@ -37,14 +37,14 @@ that should point to the container, and the HTTP port to listen on.
 #### Example docker-compose.yml
 
     frontier:
-        image: ahri/frontier:latest
+        image: lunarcity7/frontier:latest
         volumes:
             - ./frontier_state:/state
         restart: always
         ports:
             - "80:80"
             - "443:443"
-        command: adam@ahri.net rancher 172.17.0.3
+        command: foo@bar.com rancher 172.17.0.3
 
     othercontainer:
         labels:
