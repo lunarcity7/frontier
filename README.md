@@ -1,4 +1,4 @@
-# Terminator: Easy TLS (SSL) termination and reverse-proxy for cloud deployments
+# Frontier: Easy TLS (SSL) termination and reverse-proxy for cloud deployments
 
 The general idea is that TLS termination and reverse proxying should be
 achievable through minimal configuration by adding a simple container that knows
@@ -16,7 +16,7 @@ service](https://community.letsencrypt.org/tos).
 - ACME is good enough, i.e. all configured domains pass through to services
   hosted in the cloud infrastructure
 - The number of hosts is in the tens, not the hundreds or thousands
-- The Terminator container has direct internet access to communicate with Let's
+- The Frontier container has direct internet access to communicate with Let's
   Encrypt
 - No duplicate domain labels are found in the network
 - HTTP proxying only, i.e. the network is trusted so HTTPS communication is not
@@ -36,10 +36,10 @@ that should point to the container, and the HTTP port to listen on.
 
 #### Example docker-compose.yml
 
-    terminator:
-        image: ahri/terminator:latest
+    frontier:
+        image: ahri/frontier:latest
         volumes:
-            - ./terminator_state:/state
+            - ./frontier_state:/state
         restart: always
         ports:
             - "80:80"
@@ -53,14 +53,14 @@ that should point to the container, and the HTTP port to listen on.
 
 #### Create state dir
 
-    mkdir terminator_state
-    chmod 777 terminator_state
+    $ mkdir frontier_state
+    $ chmod 777 frontier_state
 
 
 #### Run docker-compose
 
-    docker-compose up -d
-    docker-compose logs terminator
+    $ docker-compose up -d
+    $ docker-compose logs frontier
 
 
 ### Supported cloud infrastructure
