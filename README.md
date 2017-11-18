@@ -5,7 +5,7 @@ achievable through minimal configuration by adding a simple container that knows
 how to get the required information from your cloud, and reconfigure on-the-fly
 when things change.
 
-Using this container impliest that you agree to the [Let's Encrypt terms of
+Using this container implies that you agree to the [Let's Encrypt terms of
 service](https://community.letsencrypt.org/tos).
 
 ### Assumptions
