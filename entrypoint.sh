@@ -49,7 +49,7 @@ EOF
 get_config_from_rancher()
 {
 	curl -s --header 'Accept: application/json' http://$metadata/2016-07-29/services | \
-		jq -r '.[].containers[] | select(.labels | has("trp.domains") and has("trp.port")) | .ips[0] + ":" + .labels["trp.port"] + " " + .labels["trp.domains"]' | \
+		jq -r '.[].containers[]? | select(.labels | has("trp.domains") and has("trp.port")) | .ips[0] + ":" + .labels["trp.port"] + " " + .labels["trp.domains"]' | \
 		while read l; do
 			ip_and_port=`echo $l | sed 's/ .*//'`
 			domains=`echo $l | sed 's/[^ ]* //'`
