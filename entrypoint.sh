@@ -1,13 +1,18 @@
 #!/bin/sh
 
-set -ue
+set -ueo pipefail
 
 if [ $# -le 2 ]; then
-	echo "USAGE: $0 letsencrypt_email data_src <data_src_args...>" 1>&2
-	echo "   where data_src can be one of: rancher" 1>&2
-	echo "" 1>&2
-	echo "   params for data sources:" 1>&2
-	echo "       rancher: metadata_server_host_or_ip" 1>&2
+	cat <<EOF 1>&2
+USAGE: $0 letsencrypt_email data_src <data_src_args...>
+    where data_src can be one of: docker-socket, rancher
+
+    NB. rancher source is buggy when metadata server changes
+
+    params for data sources:
+        docker-socket: socket_file
+        rancher: metadata_server_host_or_ip
+EOF
 	exit 1
 fi
 
@@ -15,18 +20,31 @@ email=$1
 data_src=$2
 shift 2
 
+error()
+{
+	echo "ERROR: $@" 1>&2
+	exit 1
+}
+
 case $data_src in
+"docker-socket")
+	if [ $# -ne 1 ]; then
+		error "provide the socket file"
+	fi
+
+	socket_file=$1
+	;;
+
 "rancher")
 	if [ $# -ne 1 ]; then
-		echo "Provide the host or IP for the metadata server" 1>&2
-		exit 1
+		error "provide the host or IP for the metadata server"
 	fi
 
 	metadata=$1
 	;;
+
 *)
-	echo "ERROR: unrecognized data source - $data_src" 1>&2
-	exit 1
+	error "unrecognized data source - $data_src"
 esac
 
 config()
@@ -46,10 +64,23 @@ $domains {
 EOF
 }
 
+get_config_from_docker_socket()
+{
+	curl -s --unix-socket "$socket_file" --header 'Accept: application/json' \
+		'http://localhost/containers/json?filters=\{"status":\["running"\],"label":\["frontier.domains"\]\}' | \
+		jq -r '.[] | select(.Labels | has("frontier.domains") and has("frontier.port")) | .NetworkSettings.Networks.bridge.IPAddress + ":" + .Labels["frontier.port"] + " " + .Labels["frontier.domains"]' | \
+		while read l; do
+			ip_and_port=`echo $l | sed 's/ .*//'`
+			domains=`echo $l | sed 's/[^ ]* //'`
+
+			config "$ip_and_port" "$domains"
+		done
+}
+
 get_config_from_rancher()
 {
 	curl -s --header 'Accept: application/json' http://$metadata/2016-07-29/services | \
-		jq -r '.[].containers[]? | select(.labels | has("trp.domains") and has("trp.port")) | .ips[0] + ":" + .labels["trp.port"] + " " + .labels["trp.domains"]' | \
+		jq -r '.[].containers[]? | select(.labels | has("frontier.domains") and has("frontier.port")) | .ips[0] + ":" + .labels["frontier.port"] + " " + .labels["frontier.domains"]' | \
 		while read l; do
 			ip_and_port=`echo $l | sed 's/ .*//'`
 			domains=`echo $l | sed 's/[^ ]* //'`
@@ -61,12 +92,14 @@ get_config_from_rancher()
 get_config()
 {
 	case $data_src in
+	"docker-socket")
+		get_config_from_docker_socket
+		;;
 	"rancher")
 		get_config_from_rancher
 		;;
 	*)
-		echo "ERROR: unrecognized data source - $data_src" 1>&2
-		exit 1
+		error "unrecognized data source - $data_src"
 	esac
 }
 

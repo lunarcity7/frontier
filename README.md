@@ -25,31 +25,33 @@ service](https://community.letsencrypt.org/tos).
 
 ### Installation
 
-Run inside a virtual network with access to the metadata required (e.g. Rancher
-metadata server). Make this container the entrypoint to all HTTP(S) traffic by
-pointing all traffic on ports 80 and 443 to its exposed ports of the same
-numbers. Make sure to bind the /state volume in order to keep track of the
-certificates received from Let's Encrypt across container restarts/removal.
+Run inside a virtual network with access to the metadata required (e.g. having
+access to the Docker socket, or Rancher metadata server). Make this container
+the entrypoint to all HTTP(S) traffic by pointing all traffic on ports 80 and
+443 to its exposed ports of the same numbers. Make sure to bind the /state
+volume in order to keep track of the certificates received from Let's Encrypt
+across container restarts/removal.
 
-Set labels of "trp.domains" and "trp.port" to a comma-separated list of domains
-that should point to the container, and the HTTP port to listen on.
+Set labels of "frontier.domains" and "frontier.port" to a comma-separated list
+of domains that should point to the container, and the HTTP port to listen on.
 
 #### Example docker-compose.yml
 
     frontier:
         image: lunarcity7/frontier:latest
         volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
             - ./frontier_state:/state
         restart: always
         ports:
             - "80:80"
             - "443:443"
-        command: foo@bar.com rancher 172.17.0.3
+        command: foo@bar.com docker-socket /var/run/docker.sock
 
     othercontainer:
         labels:
-            trp.domains: "www.domain1.com, domain1.com"
-            trp.port: "2015"
+            frontier.domains: "www.domain1.com, domain1.com"
+            frontier.port: "2015"
 
 #### Create state dir
 
@@ -63,12 +65,13 @@ that should point to the container, and the HTTP port to listen on.
     $ docker-compose logs frontier
 
 
-### Supported cloud infrastructure
+### Supported infrastructure
+- Docker socket
 - [Rancher](http://rancher.com/)
 
 
 ### Likely next-steps
-- Add support for other metadata sources, e.g. Docker socket, Swarm, Consul
+- Add support for other metadata sources, e.g. Swarm, Consul
 - Remove assumptions where possible
 
 
