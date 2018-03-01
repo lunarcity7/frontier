@@ -3,7 +3,7 @@ FROM alpine:3.6
 ENV \
     caddy="https://github.com/mholt/caddy/releases/download/v0.10.7/caddy_v0.10.7_linux_amd64.tar.gz" \
     build="ca-certificates" \
-    run="curl jq libcap"
+    run="curl jq libcap sudo"
 
 RUN \
     apk --update add \
@@ -30,5 +30,3 @@ VOLUME /state
 ENTRYPOINT ["/entrypoint.sh"]
 
 ADD entrypoint.sh /
-
-USER nobody

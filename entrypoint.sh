@@ -2,7 +2,7 @@
 
 set -ueo pipefail
 
-if [ $# -le 2 ]; then
+if [ $# -lt 2 ]; then
 	cat <<EOF 1>&2
 USAGE: $0 letsencrypt_email data_src <data_src_args...>
     where data_src can be one of: docker-socket, rancher
@@ -108,7 +108,7 @@ current_cfg="* {
 }"
 echo "$current_cfg" > Caddyfile
 
-caddy -agree -log stdout -http-port 80 -https-port 443 -email $email &
+sudo -Eu nobody caddy -agree -log stdout -http-port 80 -https-port 443 -email $email &
 pid=$!
 
 while :; do
