@@ -11,7 +11,7 @@ USAGE: $0 letsencrypt_email data_src <data_src_args...>
 
     params for data sources:
         docker-socket: socket_file
-        rancher: metadata_server_host_or_ip
+	rancher: (none)
 EOF
 	exit 1
 fi
@@ -46,11 +46,6 @@ case $data_src in
 	;;
 
 "rancher")
-	if [ $# -ne 1 ]; then
-		error "provide the host or IP for the metadata server"
-	fi
-
-	export metadata=$1
 	;;
 
 *)

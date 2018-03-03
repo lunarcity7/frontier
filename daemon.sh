@@ -34,7 +34,7 @@ get_config_from_docker_socket()
 
 get_config_from_rancher()
 {
-	curl -s --header 'Accept: application/json' http://$metadata/2016-07-29/services | \
+	curl -s --header 'Accept: application/json' http://rancher-metadata/2016-07-29/services | \
 		jq -r '.[].containers[]? | select(.labels | has("frontier.domains") and has("frontier.port")) | .ips[0] + ":" + .labels["frontier.port"] + " " + .labels["frontier.domains"]' | \
 		while read l; do
 			ip_and_port=`echo $l | sed 's/ .*//'`
