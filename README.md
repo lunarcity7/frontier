@@ -48,10 +48,16 @@ of domains that should point to the container, and the HTTP port to listen on.
             - "443:443"
         command: foo@bar.com docker-socket /var/run/docker.sock
 
-    othercontainer:
-        labels:
-            frontier.domains: "www.domain1.com, domain1.com"
-            frontier.port: "2015"
+    portainer:
+      image: portainer/portainer:latest
+      privileged: true
+      restart: always
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+        - ./data:/data
+      labels:
+        - "frontier.domains=portainer.mydomain.com, otherurl.mydomain.com"
+        - "frontier.port=9000"
 
 #### Create state dir
 
