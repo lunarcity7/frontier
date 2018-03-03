@@ -1,7 +1,7 @@
-FROM alpine:3.6
+FROM alpine:3.7
 
 ENV \
-    caddy="https://github.com/mholt/caddy/releases/download/v0.10.7/caddy_v0.10.7_linux_amd64.tar.gz" \
+    caddy="https://caddyserver.com/download/linux/amd64?plugins=http.jwt,http.login&license=personal" \
     build="ca-certificates" \
     run="curl jq libcap sudo socat"
 

@@ -1,7 +1,5 @@
 #!/bin/sh
 
-set -ueo pipefail
-
 if [ $# -lt 2 ]; then
 	cat <<EOF 1>&2
 USAGE: $0 letsencrypt_email data_src <data_src_args...>
@@ -16,8 +14,19 @@ EOF
 	exit 1
 fi
 
-export script_dir="`dirname "$0"`"
+if [ -z $FRONTIER_USER ]; then
+	export FRONTIER_USER=`cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1`
+	echo "FRONTIER_USER not set in env, generated value: $FRONTIER_USER"
+fi
 
+if [ -z $FRONTIER_PASS ]; then
+	export FRONTIER_PASS=`cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1`
+	echo "FRONTIER_PASS not set in env, generated value: $FRONTIER_PASS"
+fi
+
+set -ueo pipefail
+
+export script_dir="`dirname "$0"`"
 export email=$1
 export data_src=$2
 shift 2

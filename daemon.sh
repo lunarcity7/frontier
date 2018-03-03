@@ -4,43 +4,62 @@ set -ueo pipefail
 
 config()
 {
-	ip_and_port="$1"
-	domains="$2"
+	json="$1"
+
+	ip=`echo "$json" | jq -r '.ip'`
+	port=`echo "$json" | jq -r '.port'`
+	domains=`echo "$json" | jq -r '.domains'`
+
+	if echo "$json" | jq -er '.tags' > /dev/null; then
+		tags=`echo "$json" | jq -r '.tags'`
+	else
+		tags=""
+	fi
 
 	cat <<EOF
 $domains {
 	gzip
 
-	proxy / $ip_and_port {
+	proxy / $ip:$port {
 		transparent
 		websocket
 	}
-}
 EOF
+
+	if echo $tags | grep -q '\blogin\b'; then
+		cat <<EOF
+
+	jwt {
+		path /
+		except /login
+		redirect /login
+	}
+
+	login {
+		simple $FRONTIER_USER=$FRONTIER_PASS
+	}
+EOF
+	fi
+
+	echo '}'
 }
 
 get_config_from_docker_socket()
 {
 	curl -s --unix-socket "$socket_file" --header 'Accept: application/json' \
 		'http://localhost/containers/json?filters=\{"status":\["running"\],"label":\["frontier.domains"\]\}' | \
-		jq -r '.[] | select(.Labels | has("frontier.domains") and has("frontier.port")) | .NetworkSettings.Networks.bridge.IPAddress + ":" + .Labels["frontier.port"] + " " + .Labels["frontier.domains"]' | \
-		while read l; do
-			ip_and_port=`echo $l | sed 's/ .*//'`
-			domains=`echo $l | sed 's/[^ ]* //'`
-
-			config "$ip_and_port" "$domains"
+		jq -c '.[] | select(.Labels | has("frontier.domains") and has("frontier.port")) | { "ip": .NetworkSettings.Networks.bridge.IPAddress, "port": .Labels["frontier.port"], "domains": .Labels["frontier.domains"], "tags": .Labels["frontier.tags"] }' | \
+		while read json; do
+			config "$json"
 		done
 }
 
 get_config_from_rancher()
 {
 	curl -s --header 'Accept: application/json' http://rancher-metadata/2016-07-29/services | \
-		jq -r '.[].containers[]? | select(.labels | has("frontier.domains") and has("frontier.port")) | .ips[0] + ":" + .labels["frontier.port"] + " " + .labels["frontier.domains"]' | \
+		jq -r '.[].containers[]? | select(.labels | has("frontier.domains") and has("frontier.port")) | { "ip": .ips[0], "port": .labels["frontier.port"], "domains": .labels["frontier.domains"], "tags": .labels["frontier.tags"] }' | \
 		while read l; do
-			ip_and_port=`echo $l | sed 's/ .*//'`
-			domains=`echo $l | sed 's/[^ ]* //'`
-
-			config "$ip_and_port" "$domains"
+			config "$json"
 		done
 }
 

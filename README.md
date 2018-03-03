@@ -71,6 +71,37 @@ of domains that should point to the container, and the HTTP port to listen on.
     $ docker-compose logs frontier
 
 
+#### Simple password protection
+
+A simple network-wide user/pass combination can be set and containers can be
+tagged to use this:
+
+    frontier:
+        image: lunarcity7/frontier:latest
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - ./frontier_state:/state
+        restart: always
+        ports:
+            - "80:80"
+            - "443:443"
+        command: foo@bar.com docker-socket /var/run/docker.sock
+        environment:
+            FRONTIER_USER: username
+            FRONTIER_PASS: password
+
+    diary:
+      image: ghost:latest
+      restart: always
+      labels:
+        - "frontier.domains=diary.mydomain.com"
+        - "frontier.port=2368"
+        - "frontier.tags=login"
+
+Note that if either user/pass is not specified in environment variables,
+Frontier will auto-generate 32-character passwords and output these to the logs.
+
+
 ### Supported infrastructure
 - Docker socket
 - [Rancher](http://rancher.com/)
