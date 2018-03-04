@@ -21,6 +21,8 @@ service](https://community.letsencrypt.org/tos).
 - No duplicate domain labels are found in the network
 - HTTP proxying only, i.e. the network is trusted so HTTPS communication is not
   needed
+- Bridge network is good enough for most use-cases (even though docker-compose
+  2+ creates a network per container by default)
 
 
 ### Installation
@@ -100,6 +102,12 @@ tagged to use this:
 
 Note that if either user/pass is not specified in environment variables,
 Frontier will auto-generate 32-character passwords and output these to the logs.
+
+
+#### Docker compose 2+
+
+When using later versions for `docker-compose`, make sure to add `network_mode:
+"bridge"` to the container you wish to expose.
 
 
 ### Supported infrastructure
