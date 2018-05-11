@@ -46,6 +46,7 @@ case $data_src in
 	socket_file=$1
 
 	proxy=/tmp/docker-proxy.sock
+	rm -f "$proxy"
 	socat "UNIX-CONNECT:$socket_file" "UNIX-LISTEN:$proxy,fork" &
 	proxy_pid=$!
 	while [ ! -e "$proxy" ]; do :; done
