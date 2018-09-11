@@ -48,7 +48,7 @@ get_config_from_docker_socket()
 {
 	curl -s --unix-socket "$socket_file" --header 'Accept: application/json' \
 		'http://localhost/containers/json?filters=\{"status":\["running"\],"label":\["frontier.domains"\]\}' | \
-		jq -c '.[] | select(.Labels | has("frontier.domains") and has("frontier.port")) | { "ip": .NetworkSettings.Networks.bridge.IPAddress, "port": .Labels["frontier.port"], "domains": .Labels["frontier.domains"], "tags": .Labels["frontier.tags"] }' | \
+		jq -c '.[] | select(.Labels | has("frontier.domains") and has("frontier.port")) | { "ip": .NetworkSettings.Networks.'$network_name'.IPAddress, "port": .Labels["frontier.port"], "domains": .Labels["frontier.domains"], "tags": .Labels["frontier.tags"] }' | \
 		while read json; do
 			config "$json"
 		done

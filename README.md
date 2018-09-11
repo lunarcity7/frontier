@@ -21,8 +21,6 @@ service](https://community.letsencrypt.org/tos).
 - No duplicate domain labels are found in the network
 - HTTP proxying only, i.e. the network is trusted so HTTPS communication is not
   needed
-- Bridge network is good enough for most use-cases (even though docker-compose
-  2+ creates a network per container by default)
 
 
 ### Installation
@@ -39,32 +37,66 @@ of domains that should point to the container, and the HTTP port to listen on.
 
 #### Example docker-compose.yml
 
-    frontier:
-        image: lunarcity7/frontier:latest
-        volumes:
-            - /var/run/docker.sock:/var/run/docker.sock
-            - ./frontier_state:/state
-        restart: always
-        ports:
-            - "80:80"
-            - "443:443"
-        command: foo@bar.com docker-socket /var/run/docker.sock
+    version: "3.5"
 
-    portainer:
-      image: portainer/portainer:latest
-      privileged: true
-      restart: always
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-        - ./data:/data
-      labels:
-        - "frontier.domains=portainer.mydomain.com, otherurl.mydomain.com"
-        - "frontier.port=9000"
+    services:
+        frontier:
+            image: lunarcity7/frontier:latest
+            volumes:
+                - /var/run/docker.sock:/var/run/docker.sock
+                - ./frontier_state:/state
+            restart: always
+            ports:
+                - "80:80"
+                - "443:443"
+            command: foo@bar.com docker-socket /var/run/docker.sock frontier
+            networks:
+                - frontier
+
+        portainer:
+            image: portainer/portainer:latest
+            privileged: true
+            restart: always
+            volumes:
+                - /var/run/docker.sock:/var/run/docker.sock
+                - ./portainer_state:/data
+            labels:
+                - "frontier.domains=portainer.mydomain.com, otherurl.mydomain.com"
+                - "frontier.port=9000"
+            networks:
+                - frontier
+
+    networks:
+        frontier:
+            name: frontier
+
+Note that for older verions of `docker-compose` the network parts can be
+omitted, and the command set to "foo@bar.com docker-socket
+/var/run/docker.sock". This will default to the "bridge" network.
+
+Other compose files can then be constructed to reference an external network:
+
+    version "3.5"
+
+    services:
+        owncloud:
+            image: owncloud/server:latest
+            labels:
+                - "frontier.domains=owncloud.mydomain.com"
+                - "frontier.port=8000"
+                - "frontier.tags=login"
+            networks:
+                - frontier
+
+    networks:
+        frontier:
+            external:
+                name: frontier
 
 #### Create state dir
 
-    $ mkdir frontier_state
-    $ chmod 777 frontier_state
+    $ mkdir frontier_state portainer_state
+    $ chmod 777 frontier_state portainer_state
 
 
 #### Run docker-compose
@@ -76,7 +108,7 @@ of domains that should point to the container, and the HTTP port to listen on.
 #### Simple password protection
 
 A simple network-wide user/pass combination can be set and containers can be
-tagged to use this:
+tagged to use this (note that this example uses docker-compose 1:
 
     frontier:
         image: lunarcity7/frontier:latest
@@ -102,12 +134,6 @@ tagged to use this:
 
 Note that if either user/pass is not specified in environment variables,
 Frontier will auto-generate 32-character passwords and output these to the logs.
-
-
-#### Docker compose 2+
-
-When using later versions for `docker-compose`, make sure to add `network_mode:
-"bridge"` to the container you wish to expose.
 
 
 ### Supported infrastructure

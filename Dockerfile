@@ -1,4 +1,4 @@
-FROM alpine:3.7
+FROM alpine:3.8
 
 ENV \
     caddy="https://caddyserver.com/download/linux/amd64?plugins=http.jwt,http.login&license=personal" \

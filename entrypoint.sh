@@ -8,7 +8,7 @@ USAGE: $0 letsencrypt_email data_src <data_src_args...>
     NB. rancher source is buggy when metadata server changes
 
     params for data sources:
-        docker-socket: socket_file
+        docker-socket: socket_file [network_name]
 	rancher: (none)
 EOF
 	exit 1
@@ -37,13 +37,25 @@ error()
 	exit 1
 }
 
+warn()
+{
+	echo "WARNING: $@" 1>&2
+}
+
 case $data_src in
 "docker-socket")
-	if [ $# -ne 1 ]; then
+	if [ $# -lt 1 ]; then
 		error "provide the socket file"
 	fi
 
 	socket_file=$1
+
+	if [ $# -lt 2 ]; then
+		warn "no network name provided, defaulting to 'bridge'"
+		network_name="bridge"
+	else
+		network_name=$2
+	fi
 
 	proxy=/tmp/docker-proxy.sock
 	rm -f "$proxy"
@@ -53,6 +65,7 @@ case $data_src in
 	chmod 777 "$proxy"
 
 	export socket_file="$proxy"
+	export network_name
 	;;
 
 "rancher")
