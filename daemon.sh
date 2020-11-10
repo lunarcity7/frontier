@@ -2,6 +2,8 @@
 
 set -ueo pipefail
 
+# if i specify redir2www then bare domains redirect to www versions, i.e. only specify bare domains in config
+
 config()
 {
 	json="$1"
@@ -14,6 +16,17 @@ config()
 		tags=`echo "$json" | jq -r '.tags'`
 	else
 		tags=""
+	fi
+
+	if echo $tags | grep -q '\bredir2www\b'; then
+		baredomains="$domains"
+		if echo $baredomains | grep -q 'www\.'; then
+			echo "ERROR: www domain specification not supported when tag redir2www is specified: $baredomains" 1>&2
+			return
+		fi
+
+		# prefix all domains with www.
+		domains=`echo $domains | sed 's/^/www./;s/, /, www./g'`
 	fi
 
 	cat <<EOF
@@ -42,6 +55,18 @@ EOF
 	fi
 
 	echo '}'
+	echo
+
+	if echo $tags | grep -q '\bredir2www\b'; then
+		echo "$baredomains" | tr ', ' '\n' | grep '[a-z]' | while read baredomain; do
+		cat <<EOF
+$baredomain {
+	redir https://www.$baredomain
+}
+
+EOF
+		done
+	fi
 }
 
 get_config_from_docker_socket()

@@ -105,6 +105,17 @@ Other compose files can then be constructed to reference an external network:
     $ docker-compose logs frontier
 
 
+#### Redirect to www
+
+Only specify bare domains, and add a "redir2www" tag to have foo.com redirect
+to https://www.foo.com:
+
+  labels:
+    - "frontier.domains=mydomain.com"
+    - "frontier.port=8000"
+    - "frontier.tags=redir2www"
+
+
 #### Simple password protection
 
 A simple network-wide user/pass combination can be set and containers can be
