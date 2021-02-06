@@ -24,6 +24,9 @@ if [ -z $FRONTIER_PASS ]; then
 	echo "FRONTIER_PASS not set in env, generated value: $FRONTIER_PASS"
 fi
 
+# Overwrite the plaintext password in-memory
+export FRONTIER_PASS=`/caddy hash-password -plaintext "$FRONTIER_PASS"`
+
 set -ueo pipefail
 
 export script_dir="`dirname "$0"`"

@@ -2,8 +2,6 @@
 
 set -ueo pipefail
 
-# if i specify redir2www then bare domains redirect to www versions, i.e. only specify bare domains in config
-
 config()
 {
 	json="$1"
@@ -31,26 +29,16 @@ config()
 
 	cat <<EOF
 $domains {
-	gzip
-
-	proxy / $ip:$port {
-		transparent
-		websocket
-	}
+  encode gzip
+  reverse_proxy * $ip:$port
 EOF
 
 	if echo $tags | grep -q '\blogin\b'; then
 		cat <<EOF
 
-	jwt {
-		path /
-		except /login
-		redirect /login
-	}
-
-	login {
-		simple $FRONTIER_USER=$FRONTIER_PASS
-	}
+  basicauth {
+    $FRONTIER_USER $FRONTIER_PASS
+  }
 EOF
 	fi
 
@@ -61,7 +49,7 @@ EOF
 		echo "$baredomains" | tr ', ' '\n' | grep '[a-z]' | while read baredomain; do
 		cat <<EOF
 $baredomain {
-	redir https://www.$baredomain
+  redir https://www.$baredomain
 }
 
 EOF
@@ -90,6 +78,24 @@ get_config_from_rancher()
 
 get_config()
 {
+	cat <<GLOBAL_CFG
+{
+  http_port 80
+  https_port 443
+  email $email
+
+  servers {
+    protocol {
+      strict_sni_host
+    }
+  }
+
+  storage file_system {
+    root /state
+  }
+}
+
+GLOBAL_CFG
 	case $data_src in
 	"docker-socket")
 		get_config_from_docker_socket
@@ -102,12 +108,11 @@ get_config()
 	esac
 }
 
-current_cfg="* {
-    internal /
-}"
+current_cfg="`get_config`"
 echo "$current_cfg" > Caddyfile
 
-caddy -agree -log stdout -http-port 80 -https-port 443 -email $email &
+export HOME=/tmp
+/caddy run &
 pid=$!
 
 while :; do
@@ -116,12 +121,13 @@ while :; do
 	next_cfg="`get_config`"
 	if [ ! "$current_cfg" = "$next_cfg" ]; then
 		current_cfg="$next_cfg"
-		echo "$current_cfg" > Caddyfile
 
 		echo "Reloading with new config:"
 		echo "$current_cfg"
 
-		kill -USR1 $pid || break
+		echo "$current_cfg" > Caddyfile
+
+		/caddy reload
 	fi
 
 	sleep 10
