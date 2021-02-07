@@ -9,6 +9,10 @@ config()
 	ip=`echo "$json" | jq -r '.ip'`
 	port=`echo "$json" | jq -r '.port'`
 	domains=`echo "$json" | jq -r '.domains'`
+	if [ "$ip" = "null" ]; then
+		echo "ERROR: duplicate domain specified for $domains" 1>&2
+		return
+	fi
 
 	if echo "$json" | jq -er '.tags' > /dev/null; then
 		tags=`echo "$json" | jq -r '.tags'`
