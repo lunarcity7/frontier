@@ -14,18 +14,15 @@ EOF
 	exit 1
 fi
 
-if [ -z $FRONTIER_USER ]; then
+if [ -z "$FRONTIER_USER" ]; then
 	export FRONTIER_USER=`cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1`
 	echo "FRONTIER_USER not set in env, generated value: $FRONTIER_USER"
 fi
 
-if [ -z $FRONTIER_PASS ]; then
+if [ -z "$FRONTIER_PASS" ]; then
 	export FRONTIER_PASS=`cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1`
 	echo "FRONTIER_PASS not set in env, generated value: $FRONTIER_PASS"
 fi
-
-# Overwrite the plaintext password in-memory
-export FRONTIER_PASS=`/caddy hash-password -plaintext "$FRONTIER_PASS"`
 
 set -ueo pipefail
 
@@ -44,6 +41,12 @@ warn()
 {
 	echo "WARNING: $@" 1>&2
 }
+
+# Overwrite the plaintext password in-memory
+export FRONTIER_PASS=`/caddy hash-password --plaintext "$FRONTIER_PASS"`
+if [ -z "$FRONTIER_PASS" ]; then
+	error "FRONTIER_PASS is not set"
+fi
 
 case $data_src in
 "docker-socket")

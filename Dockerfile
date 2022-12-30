@@ -1,13 +1,13 @@
-FROM alpine:3.13
+FROM alpine:3
+
+ARG caddy="https://caddyserver.com/api/download?os=linux&arch=amd64&idempotency=38592062657469"
+ARG build_deps="ca-certificates"
+ARG run_deps="dumb-init curl jq libcap sudo socat"
 
 RUN \
-    caddy="https://caddyserver.com/api/download?os=linux&arch=amd64&idempotency=74556302707674"; \
-    build="ca-certificates"; \
-    run="dumb-init curl jq libcap sudo socat"; \
-    \
     apk --update add \
-         $build \
-         $run \
+         $build_deps \
+         $run_deps \
          && \
     \
     cd /tmp && \
@@ -18,7 +18,7 @@ RUN \
     \
     mkdir /state && \
     \
-    apk del $build && \
+    apk del $build_deps && \
     rm -rf /var/cache/apk/*
 
 EXPOSE 80 443
